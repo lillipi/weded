@@ -1,0 +1,103 @@
+.calendar {
+  margin-top: 40px;
+}
+
+.calendar-content {
+  position: relative;
+  padding: 20px 25px 32px;
+  width: 100%;
+
+  text-align: center;
+  background-color: var(--secondarycolor);
+  box-shadow: 0 2px 91px rgba(159, 157, 157, 0.25);
+  border-radius: 5px;
+}
+
+.decor {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  z-index: 11;
+  width: 97px;
+  height: 48px;
+
+  background-image: url(../img/decor.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+  transform: rotate(-3deg) translateX(-50%);
+}
+
+.calendar-name {
+  font-family: var(--font-family);
+  font-weight: 300;
+  font-size: 24px;
+  color: var(--accentbrown);
+}
+
+.calendar-grid {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-grid-col {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.calendar-day {
+  text-align: center;
+  font-family: var(--font-family);
+  font-weight: 300;
+  font-size: 22px;
+  color: var(--accentbrown);
+}
+
+.calendar-numb {
+  text-align: center;
+  font-family: var(--font-family);
+  font-weight: 300;
+  font-size: 20px;
+  color: var(--accentbrown);
+}
+
+.calendar-numb-gray {
+  color: #d1c5b3;
+}
+
+.calendar-numb-select {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.calendar-numb-select::before {
+  content: "";
+  position: absolute;
+  height: 44px;
+  z-index: -1;
+
+  background-image: url(../img/lineforcalendar.svg);
+  background-position: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  background-repeat: no-repeat;
+}
+
+.save-date {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+
+  transform: rotate(-10deg);
+
+  font-family: var(--third-family);
+  font-weight: 400;
+  font-size: 15px;
+  text-align: center;
+  color: var(--accentbrown);
+}
