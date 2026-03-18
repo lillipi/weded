@@ -3,16 +3,16 @@ const loading = document.getElementById('loading');
 const message = document.getElementById('message');
 
 const BOT_TOKEN = '8792828862:AAEUoHc06sXI1cG6OfIdRfZ0kSHiOwEMp9c';
-const CHAT_ID = '722433913';
+const CHAT_IDS = ['722433913', '1538180433'];
 
 form.addEventListener('submit', async function (e) {
   e.preventDefault();
 
   console.log('=== ПРОВЕРКА ФОРМЫ ===');
 
-  // Проверка Chat ID
-  if (CHAT_ID === 'ВАШ_РЕАЛЬНЫЙ_CHAT_ID' || !CHAT_ID) {
-    showMessage('❌ Ошибка: Не настроен Chat ID.', 'error');
+  // Проверка Chat ID(ов)
+  if (!Array.isArray(CHAT_IDS) || CHAT_IDS.length === 0 || CHAT_IDS.some(id => !id || id === 'ВАШ_РЕАЛЬНЫЙ_CHAT_ID' || id === 'ВТОРОЙ_CHAT_ID')) {
+    showMessage('❌ Ошибка: Не настроен(ы) Chat ID получателей.', 'error');
     return;
   }
 
@@ -64,25 +64,29 @@ form.addEventListener('submit', async function (e) {
   console.log('Отправляемые данные:', { name, attendance, drinksText });
 
   try {
-    // Отправка в Telegram
-    const response = await sendToTelegram(telegramMessage);
-    console.log('Ответ Telegram:', response);
+    // Отправка в Telegram всем получателям
+    const responses = await sendToTelegram(telegramMessage);
+    console.log('Ответы Telegram:', responses);
 
-    if (response.ok) {
+    const isAnyOk = responses.some(res => res && res.ok);
+
+    if (isAnyOk) {
       showMessage('✅ Ваш ответ успешно отправлен! Организатор получил уведомление.', 'success');
       form.reset();
     } else {
       // Обработка ошибок Telegram
       let errorMsg = '❌ Ошибка отправки: ';
 
-      if (response.error_code === 400) {
-        errorMsg += 'Неверный Chat ID. ';
-        errorMsg += 'Получите актуальный Chat ID по ссылке выше.';
-      } else if (response.error_code === 403) {
-        errorMsg += 'Бот не добавлен в чат. ';
-        errorMsg += 'Добавьте бота в чат или отправьте ему /start';
+      const firstError = responses.find(res => res && !res.ok);
+      if (firstError) {
+        if (firstError.error_code === 400) {
+          errorMsg += 'Неверный Chat ID у одного из получателей. ';
+        } else if (firstError.error_code === 403) {
+          errorMsg += 'Бот не добавлен в один из чатов. Добавьте бота в чат или отправьте ему /start. ';
+        }
+        errorMsg += firstError.description || 'Неизвестная ошибка';
       } else {
-        errorMsg += response.description || 'Неизвестная ошибка';
+        errorMsg += 'Не удалось отправить сообщение ни одному получателю.';
       }
 
       throw new Error(errorMsg);
@@ -96,22 +100,23 @@ form.addEventListener('submit', async function (e) {
 });
 
 async function sendToTelegram(message) {
-  // Кодируем сообщение
   const encodedMessage = encodeURIComponent(message);
 
-  // Формируем URL (без parse_mode для простоты)
-  const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodedMessage}`;
+  const requests = CHAT_IDS.map(chatId => {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${chatId}&text=${encodedMessage}`;
 
-  console.log('URL запроса (без токена):',
-    `https://api.telegram.org/bot[TOKEN]/sendMessage?chat_id=${CHAT_ID}&text=...`);
+    console.log('URL запроса (без токена):',
+      `https://api.telegram.org/bot[TOKEN]/sendMessage?chat_id=${chatId}&text=...`);
 
-  try {
-    const response = await fetch(url);
-    return await response.json();
-  } catch (error) {
-    console.error('Fetch error:', error);
-    throw new Error('Проблема с интернет-соединением');
-  }
+    return fetch(url)
+      .then(res => res.json())
+      .catch(error => {
+        console.error('Fetch error for chat', chatId, error);
+        return { ok: false, description: 'Проблема с интернет-соединением' };
+      });
+  });
+
+  return Promise.all(requests);
 }
 
 function showMessage(text, type) {
